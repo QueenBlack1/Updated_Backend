@@ -1,31 +1,28 @@
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
-const mysql = require("mysql2/promise");
+const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 
-const db = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "joburg_hospital",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 async function testDatabase() {
   try {
-    const connection = await db.getConnection();
-    console.log("✅ MySQL connected successfully");
-    connection.release();
+    const client = await db.connect();
+    console.log("✅ PostgreSQL connected successfully");
+    client.release();
     return true;
   } catch (err) {
-    console.error("❌ MySQL connection failed:", err.message);
+    console.error("❌ PostgreSQL connection failed:", err.message);
     return false;
   }
 }
